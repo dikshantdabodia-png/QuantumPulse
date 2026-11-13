@@ -43,6 +43,7 @@ htmlcov/
 
 # Generated outputs
 *.pdf
+!samples/sample_executive_audit.pdf
 results.sarif
 generated_cbom.json
 

@@ -24,6 +24,7 @@ from core.analyzer import QuantumPulseAnalyzer
 from core.cbom_comparer import CBOMComparer
 from core.reporter import Reporter
 from core.generator import CodebaseCBOMGenerator
+from core.patcher import CodePatcher
 from core.models import ComplianceStatus, AlgorithmFamily
 
 
@@ -322,6 +323,13 @@ def main():
                             st.markdown(f"**Hybrid Migration Path:** `{d.hybrid_alternative}`")
                         st.markdown(f"**Overhead / Trade-Off:** {d.public_key_overhead} | {d.ciphertext_overhead}")
                         st.markdown(f"**Action Directive:** {d.action_plan}")
+
+                        # Automated Migration Code Patch
+                        patch = CodePatcher.get_patch_snippet(d.current_algorithm, d.recommended_replacement, language="python")
+                        st.markdown("---")
+                        st.markdown("###### 🛠️ Drop-in Implementation Code Patch:")
+                        st.caption(patch["explanation"])
+                        st.code(patch["code"], language="python")
             else:
                 st.success("🎉 All discovered cryptographic primitives are already compliant with NIST PQC baselines. No remediation required!")
 

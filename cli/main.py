@@ -26,6 +26,7 @@ from core.analyzer import QuantumPulseAnalyzer
 from core.cbom_comparer import CBOMComparer
 from core.reporter import Reporter
 from core.generator import CodebaseCBOMGenerator
+from core.patcher import CodePatcher
 from core.models import ComplianceStatus
 
 app = typer.Typer(
@@ -297,6 +298,32 @@ def run_benchmark_cmd(
         raise typer.Exit(code=1)
 
     run_benchmarks(asset_counts=asset_counts)
+
+
+@app.command(name="patch")
+def show_patch(
+    algorithm: str = typer.Argument(..., help="Legacy algorithm to remediate (e.g. RSA, ECDH, ECDSA, AES-128)."),
+    target_pqc: str = typer.Option("ML-KEM-768", "--target", "-t", help="NIST Post-Quantum target standard (ML-KEM-768, ML-DSA-65, etc.)."),
+    language: str = typer.Option("python", "--lang", "-l", help="Target language/environment (python, openssl, nginx)."),
+):
+    """Generate copy-pasteable post-quantum code patch snippets and migration wrappers."""
+    patch = CodePatcher.get_patch_snippet(algorithm, target_pqc, language=language)
+    
+    console.print()
+    console.print(Panel(
+        f"[bold]Legacy Algorithm:[/bold] {algorithm} ➔ [bold green]NIST Target:[/bold green] {target_pqc}\n"
+        f"[bold]Target Environment:[/bold] {patch['language']}\n\n"
+        f"[dim]{patch['explanation']}[/dim]",
+        title="QuantumPulse Automated Migration Code Patcher",
+        border_style="green",
+        box=box.ROUNDED,
+    ))
+    console.print()
+    from rich.syntax import Syntax
+    lex = "python" if patch["language"].lower() == "python" else "nginx"
+    syntax = Syntax(patch["code"], lex, theme="monokai", line_numbers=True)
+    console.print(syntax)
+    console.print()
 
 
 @app.command(name="rules")
