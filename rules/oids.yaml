@@ -1,0 +1,183 @@
+# Cryptographic Object Identifier (OID) Mapping Registry
+# Maps international ITU-T / ISO OIDs to Canonical Algorithm Names and Properties
+
+version: "1.0.0"
+
+oids:
+  # --- RSA OIDs ---
+  "1.2.840.113549.1.1.1":
+    name: "RSA"
+    family: "asymmetric"
+    primitive: "pke"
+    description: "RSA Encryption (PKCS #1)"
+  "1.2.840.113549.1.1.5":
+    name: "SHA1withRSA"
+    family: "signature"
+    primitive: "signature"
+    hash: "SHA-1"
+    underlying: "RSA"
+  "1.2.840.113549.1.1.11":
+    name: "SHA256withRSA"
+    family: "signature"
+    primitive: "signature"
+    hash: "SHA-256"
+    underlying: "RSA"
+  "1.2.840.113549.1.1.12":
+    name: "SHA384withRSA"
+    family: "signature"
+    primitive: "signature"
+    hash: "SHA-384"
+    underlying: "RSA"
+  "1.2.840.113549.1.1.13":
+    name: "SHA512withRSA"
+    family: "signature"
+    primitive: "signature"
+    hash: "SHA-512"
+    underlying: "RSA"
+  "1.2.840.113549.1.1.10":
+    name: "RSASSA-PSS"
+    family: "signature"
+    primitive: "signature"
+    description: "RSA Probabilistic Signature Scheme"
+
+  # --- ECC & Curves ---
+  "1.2.840.10045.2.1":
+    name: "ECDSA"
+    family: "asymmetric"
+    primitive: "signature"
+    description: "Elliptic Curve Public Key Cryptography"
+  "1.2.840.10045.3.1.7":
+    name: "secp256r1"
+    family: "asymmetric"
+    primitive: "curve"
+    aliases: ["prime256v1", "NIST P-256"]
+    curve_bits: 256
+  "1.3.132.0.34":
+    name: "secp384r1"
+    family: "asymmetric"
+    primitive: "curve"
+    aliases: ["NIST P-384"]
+    curve_bits: 384
+  "1.3.132.0.35":
+    name: "secp521r1"
+    family: "asymmetric"
+    primitive: "curve"
+    aliases: ["NIST P-521"]
+    curve_bits: 521
+  "1.3.132.0.10":
+    name: "secp256k1"
+    family: "asymmetric"
+    primitive: "curve"
+    curve_bits: 256
+  "1.3.101.112":
+    name: "Ed25519"
+    family: "signature"
+    primitive: "signature"
+    description: "Edwards-curve Digital Signature Algorithm (Ed25519)"
+  "1.3.101.110":
+    name: "X25519"
+    family: "key-exchange"
+    primitive: "key-agree"
+    description: "Montgomery Curve Key Agreement (X25519)"
+
+  # --- Hash Functions ---
+  "1.2.840.113549.2.5":
+    name: "MD5"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 128
+  "1.3.14.3.2.26":
+    name: "SHA-1"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 160
+  "2.16.840.1.101.3.4.2.1":
+    name: "SHA-256"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 256
+  "2.16.840.1.101.3.4.2.2":
+    name: "SHA-384"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 384
+  "2.16.840.1.101.3.4.2.3":
+    name: "SHA-512"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 512
+  "2.16.840.1.101.3.4.2.8":
+    name: "SHA3-256"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 256
+  "2.16.840.1.101.3.4.2.9":
+    name: "SHA3-512"
+    family: "hash"
+    primitive: "digest"
+    digest_size: 512
+
+  # --- Symmetric Ciphers ---
+  "2.16.840.1.101.3.4.1.2":
+    name: "AES-128-CBC"
+    family: "symmetric"
+    primitive: "cipher"
+    key_size: 128
+    mode: "CBC"
+  "2.16.840.1.101.3.4.1.6":
+    name: "AES-128-GCM"
+    family: "symmetric"
+    primitive: "cipher"
+    key_size: 128
+    mode: "GCM"
+  "2.16.840.1.101.3.4.1.42":
+    name: "AES-256-CBC"
+    family: "symmetric"
+    primitive: "cipher"
+    key_size: 256
+    mode: "CBC"
+  "2.16.840.1.101.3.4.1.46":
+    name: "AES-256-GCM"
+    family: "symmetric"
+    primitive: "cipher"
+    key_size: 256
+    mode: "GCM"
+  "1.2.840.113549.3.7":
+    name: "3DES-EDE3-CBC"
+    family: "symmetric"
+    primitive: "cipher"
+    key_size: 168
+    mode: "CBC"
+
+  # --- NIST Post-Quantum Algorithms (Standardized OIDs) ---
+  "2.16.840.1.101.3.4.4.1":
+    name: "ML-KEM-512"
+    family: "kem"
+    primitive: "kem"
+    standard: "FIPS 203"
+  "2.16.840.1.101.3.4.4.2":
+    name: "ML-KEM-768"
+    family: "kem"
+    primitive: "kem"
+    standard: "FIPS 203"
+  "2.16.840.1.101.3.4.4.3":
+    name: "ML-KEM-1024"
+    family: "kem"
+    primitive: "kem"
+    standard: "FIPS 203"
+  "2.16.840.1.101.3.4.3.17":
+    name: "ML-DSA-44"
+    family: "signature"
+    primitive: "signature"
+    standard: "FIPS 204"
+  "2.16.840.1.101.3.4.3.18":
+    name: "ML-DSA-65"
+    family: "signature"
+    primitive: "signature"
+    standard: "FIPS 204"
+  "2.16.840.1.101.3.4.3.19":
+    name: "ML-DSA-87"
+    family: "signature"
+    primitive: "signature"
+    standard: "FIPS 204"
+

@@ -1,0 +1,134 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:3e67121d-1144-4174-886a-630e93b72444",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-13T10:00:00Z",
+    "tools": {
+      "components": [
+        {
+          "name": "QuantumPulse-Ingest-Tool",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    "component": {
+      "type": "application",
+      "name": "GlobalCore-Banking-Engine",
+      "version": "4.2.0"
+    }
+  },
+  "components": [
+    {
+      "type": "cryptographic-asset",
+      "name": "RSA-1024-Legacy-Transport",
+      "bom-ref": "banking-core#rsa-1024",
+      "description": "Legacy batch payment transport encryption key",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "pke",
+          "parameterSetIdentifier": 1024,
+          "padding": "pkcs1v1.5",
+          "classicalSecurityLevel": 80
+        },
+        "oid": "1.2.840.113549.1.1.1"
+      },
+      "properties": [
+        { "name": "purpose", "value": "financial-batch-transport" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "RSA-2048-Web-TLS",
+      "bom-ref": "banking-core#rsa-2048",
+      "description": "Customer Portal TLS handshake certificate key",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": 2048,
+          "padding": "oaep",
+          "classicalSecurityLevel": 112
+        },
+        "oid": "1.2.840.113549.1.1.11"
+      },
+      "properties": [
+        { "name": "purpose", "value": "tls-handshake" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "3DES-EDE3-CBC-ATM",
+      "bom-ref": "banking-core#3des-atm",
+      "description": "ATM switch message pin block encryption",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "cipher",
+          "parameterSetIdentifier": 168,
+          "mode": "CBC"
+        },
+        "oid": "1.2.840.113549.3.7"
+      },
+      "properties": [
+        { "name": "purpose", "value": "atm-pin-encryption" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "AES-128-CBC-DB",
+      "bom-ref": "banking-core#aes-128-db",
+      "description": "Account balances database table transparent encryption",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "cipher",
+          "parameterSetIdentifier": 128,
+          "mode": "CBC",
+          "classicalSecurityLevel": 128
+        },
+        "oid": "2.16.840.1.101.3.4.1.2"
+      },
+      "properties": [
+        { "name": "purpose", "value": "data-at-rest" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "SHA-1-Legacy-Signatures",
+      "bom-ref": "banking-core#sha1-sig",
+      "description": "Legacy SWIFT statement signature digest",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "digest",
+          "parameterSetIdentifier": 160
+        },
+        "oid": "1.3.14.3.2.26"
+      },
+      "properties": [
+        { "name": "purpose", "value": "digital-signature" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "MD5-File-Checksum",
+      "bom-ref": "banking-core#md5-checksum",
+      "description": "Daily audit file integrity verification hash",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "digest",
+          "parameterSetIdentifier": 128
+        },
+        "oid": "1.2.840.113549.2.5"
+      },
+      "properties": [
+        { "name": "purpose", "value": "file-checksum" }
+      ]
+    }
+  ]
+}
+

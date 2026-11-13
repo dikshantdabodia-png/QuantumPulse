@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quantumpulse"
+version = "1.0.0"
+description = "CBOM File Analyzer & NIST Post-Quantum Cryptography Migration Advisor"
+readme = "README.md"
+authors = [{ name = "QuantumPulse Team" }]
+license = { text = "MIT" }
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.7.0",
+    "streamlit>=1.35.0",
+    "plotly>=5.22.0",
+    "reportlab>=4.2.0",
+    "jsonschema>=4.22.0",
+    "pydantic>=2.7.0",
+    "pyyaml>=6.0.1",
+    "pandas>=2.2.0",
+]
+
+[project.scripts]
+quantumpulse = "cli.main:app"
+

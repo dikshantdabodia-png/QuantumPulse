@@ -1,0 +1,43 @@
+name: QuantumPulse PQC Security Gate
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  pqc-governance-audit:
+    name: Post-Quantum Cryptographic Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install QuantumPulse Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Unit Test Suite
+        run: |
+          python -m pytest tests/ -v
+
+      - name: Run Cryptographic Audit & SARIF Generation
+        run: |
+          python cli/main.py scan samples/enterprise_banking_cbom.json \
+            --format sarif --output results.sarif \
+            --fail-on-broken --max-qri 80.0
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+

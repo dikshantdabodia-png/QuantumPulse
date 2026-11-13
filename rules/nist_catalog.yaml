@@ -1,0 +1,185 @@
+# NIST Post-Quantum Cryptography Catalog & Parameter Metrics
+# Standards: FIPS 203 (ML-KEM), FIPS 204 (ML-DSA), FIPS 205 (SLH-DSA)
+# Released: August 2024
+
+version: "2024.1"
+
+# Post-Quantum Standards
+pqc_standards:
+  # --- FIPS 203: ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism) ---
+  ML-KEM:
+    standard: "NIST FIPS 203"
+    primary_use: "Key Encapsulation / Handshake Key Agreement"
+    description: "Replaces RSA key exchange and (EC)DH key agreement in TLS, SSH, and VPNs."
+    variants:
+      ML-KEM-512:
+        nist_security_level: 1
+        classical_equivalent: "AES-128 / SHA-256"
+        public_key_bytes: 800
+        ciphertext_bytes: 768
+        shared_secret_bytes: 32
+        network_friendly: true
+        recommended_for: "Constrained IoT or low-bandwidth environments requiring Level 1 security."
+      ML-KEM-768:
+        nist_security_level: 3
+        classical_equivalent: "AES-192 / SHA-384"
+        public_key_bytes: 1184
+        ciphertext_bytes: 1088
+        shared_secret_bytes: 32
+        network_friendly: true
+        default_choice: true
+        recommended_for: "Standard enterprise TLS handshakes, API endpoints, microservices, and general key establishment."
+      ML-KEM-1024:
+        nist_security_level: 5
+        classical_equivalent: "AES-256 / SHA-512"
+        public_key_bytes: 1568
+        ciphertext_bytes: 1568
+        shared_secret_bytes: 32
+        network_friendly: false
+        recommended_for: "Classified government communications, high-assurance banking backbones (CNSA 2.0)."
+
+  # --- FIPS 204: ML-DSA (Module-Lattice-Based Digital Signature Standard) ---
+  ML-DSA:
+    standard: "NIST FIPS 204"
+    primary_use: "General Digital Signatures, PKI, and Code Signing"
+    description: "Replaces RSA signatures, ECDSA, and Ed25519 for authentication and integrity."
+    variants:
+      ML-DSA-44:
+        nist_security_level: 2
+        classical_equivalent: "SHA-256"
+        public_key_bytes: 1312
+        signature_bytes: 2420
+        verification_speed: "Very Fast"
+        recommended_for: "Lightweight code signing, container image provenance."
+      ML-DSA-65:
+        nist_security_level: 3
+        classical_equivalent: "AES-192 / SHA-384"
+        public_key_bytes: 1952
+        signature_bytes: 3309
+        verification_speed: "Fast"
+        default_choice: true
+        recommended_for: "Enterprise PKI root certificates, intermediate CAs, TLS leaf certificates, software releases."
+      ML-DSA-87:
+        nist_security_level: 5
+        classical_equivalent: "AES-256 / SHA-512"
+        public_key_bytes: 2592
+        signature_bytes: 4627
+        verification_speed: "Moderate"
+        recommended_for: "High-security digital identity and mission-critical government firmware signing."
+
+  # --- FIPS 205: SLH-DSA (Stateless Hash-Based Digital Signature Standard) ---
+  SLH-DSA:
+    standard: "NIST FIPS 205"
+    primary_use: "Conservative Backup Digital Signatures"
+    description: "Stateless hash-based signature (SPHINCS+). Zero reliance on lattice assumptions."
+    variants:
+      SLH-DSA-SHA2-128s:
+        nist_security_level: 1
+        public_key_bytes: 32
+        signature_bytes: 7856
+        signing_speed: "Slow"
+        verification_speed: "Fast"
+        recommended_for: "Long-lived root certificates, firmware signing where signature size and verification matter more than signing latency."
+      SLH-DSA-SHA2-128f:
+        nist_security_level: 1
+        public_key_bytes: 32
+        signature_bytes: 17088
+        signing_speed: "Fast"
+        verification_speed: "Fast"
+        recommended_for: "Interactive signing scenarios where signing performance is prioritized over bandwidth."
+      SLH-DSA-SHA2-256s:
+        nist_security_level: 5
+        public_key_bytes: 64
+        signature_bytes: 29792
+        signing_speed: "Slow"
+        verification_speed: "Moderate"
+        recommended_for: "Ultra high-assurance long-term archiving."
+
+# Legacy Primitives Benchmark Baselines (for computing trade-offs)
+classical_baselines:
+  RSA-2048:
+    primitive: "asymmetric"
+    public_key_bytes: 256
+    signature_bytes: 256
+    ciphertext_bytes: 256
+    security_bits: 112
+  RSA-3072:
+    primitive: "asymmetric"
+    public_key_bytes: 384
+    signature_bytes: 384
+    ciphertext_bytes: 384
+    security_bits: 128
+  RSA-4096:
+    primitive: "asymmetric"
+    public_key_bytes: 512
+    signature_bytes: 512
+    ciphertext_bytes: 512
+    security_bits: 140
+  ECDSA-P256:
+    primitive: "signature"
+    public_key_bytes: 64
+    signature_bytes: 64
+    security_bits: 128
+  ECDSA-P384:
+    primitive: "signature"
+    public_key_bytes: 96
+    signature_bytes: 96
+    security_bits: 192
+  Ed25519:
+    primitive: "signature"
+    public_key_bytes: 32
+    signature_bytes: 64
+    security_bits: 128
+  X25519:
+    primitive: "key-exchange"
+    public_key_bytes: 32
+    shared_secret_bytes: 32
+    security_bits: 128
+
+# Standard Mapping Matrix
+migration_matrix:
+  # Asymmetric Encryption / Key Exchange -> ML-KEM
+  RSA-KEM:
+    target: "ML-KEM-768"
+    standard: "FIPS 203"
+    hybrid_alternative: "X25519+ML-KEM-768"
+    handshake_latency_impact: "Low (+928 bytes)"
+  ECDH-P256:
+    target: "ML-KEM-768"
+    standard: "FIPS 203"
+    hybrid_alternative: "X25519+ML-KEM-768"
+    handshake_latency_impact: "Low (+1056 bytes)"
+  X25519:
+    target: "ML-KEM-768"
+    standard: "FIPS 203"
+    hybrid_alternative: "X25519+ML-KEM-768"
+    handshake_latency_impact: "Low (+1056 bytes)"
+  DH:
+    target: "ML-KEM-768"
+    standard: "FIPS 203"
+    hybrid_alternative: "X25519+ML-KEM-768"
+    handshake_latency_impact: "Low"
+
+  # Digital Signatures -> ML-DSA / SLH-DSA
+  RSA-SIG:
+    target: "ML-DSA-65"
+    standard: "FIPS 204"
+    stateless_backup: "SLH-DSA-SHA2-128s"
+    size_expansion_multiplier: 12.9
+  ECDSA-P256:
+    target: "ML-DSA-65"
+    standard: "FIPS 204"
+    stateless_backup: "SLH-DSA-SHA2-128s"
+    size_expansion_multiplier: 51.7
+  Ed25519:
+    target: "ML-DSA-65"
+    standard: "FIPS 204"
+    stateless_backup: "SLH-DSA-SHA2-128s"
+    size_expansion_multiplier: 51.7
+
+  # Symmetric Ciphers
+  AES-128:
+    target: "AES-256-GCM"
+    standard: "NIST SP 800-38D"
+    reason: "Mitigates Grover's algorithm search speedup."
+

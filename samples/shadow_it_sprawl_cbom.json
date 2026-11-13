@@ -1,0 +1,85 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:8899aabb-ccdd-eeff-0011-223344556677",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-13T12:30:00Z",
+    "component": {
+      "type": "application",
+      "name": "Legacy-Internal-ShadowPortal",
+      "version": "1.0-alpha"
+    }
+  },
+  "components": [
+    {
+      "type": "cryptographic-asset",
+      "name": "DES",
+      "bom-ref": "shadow#des-56",
+      "description": "Hardcoded DES cipher in internal script",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "cipher",
+          "parameterSetIdentifier": 56,
+          "mode": "CBC"
+        }
+      },
+      "properties": [
+        { "name": "purpose", "value": "internal-data-obfuscation" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "RC4",
+      "bom-ref": "shadow#rc4",
+      "description": "Legacy stream cipher in legacy websocket wrapper",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "cipher",
+          "parameterSetIdentifier": 128
+        }
+      },
+      "properties": [
+        { "name": "purpose", "value": "session-transport" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "MD5",
+      "bom-ref": "shadow#md5-password",
+      "description": "User credential password storage hash",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "digest",
+          "parameterSetIdentifier": 128
+        },
+        "oid": "1.2.840.113549.2.5"
+      },
+      "properties": [
+        { "name": "purpose", "value": "password-hash" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "ECDSA",
+      "bom-ref": "shadow#ecdsa-secp256k1",
+      "description": "Elliptic curve signature on non-NIST secp256k1 curve",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "curve": "secp256k1",
+          "parameterSetIdentifier": 256
+        },
+        "oid": "1.3.132.0.10"
+      },
+      "properties": [
+        { "name": "purpose", "value": "auth-token-signing" }
+      ]
+    }
+  ]
+}
+

@@ -1,0 +1,91 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "serialNumber": "urn:uuid:7c92b210-9b34-4b45-b462-8e4726bfca10",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2026-11-13T11:00:00Z",
+    "component": {
+      "type": "application",
+      "name": "CloudNative-PQC-Service",
+      "version": "2.0.0"
+    }
+  },
+  "components": [
+    {
+      "type": "cryptographic-asset",
+      "name": "ML-KEM-768",
+      "bom-ref": "cloud-pqc#kem-768",
+      "description": "FIPS 203 Post-Quantum Session Key Encapsulation",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "kem",
+          "parameterSetIdentifier": 768,
+          "nistQuantumSecurityLevel": 3
+        },
+        "oid": "2.16.840.1.101.3.4.4.2"
+      },
+      "properties": [
+        { "name": "purpose", "value": "tls-handshake" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "ML-DSA-65",
+      "bom-ref": "cloud-pqc#dsa-65",
+      "description": "FIPS 204 Post-Quantum API Token & Certificate Signature",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "signature",
+          "parameterSetIdentifier": 65,
+          "nistQuantumSecurityLevel": 3
+        },
+        "oid": "2.16.840.1.101.3.4.3.18"
+      },
+      "properties": [
+        { "name": "purpose", "value": "jwt-signing" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "AES-256-GCM",
+      "bom-ref": "cloud-pqc#aes-256",
+      "description": "Envelope storage encryption for microservice persistent storage",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "cipher",
+          "parameterSetIdentifier": 256,
+          "mode": "GCM",
+          "classicalSecurityLevel": 256,
+          "nistQuantumSecurityLevel": 5
+        },
+        "oid": "2.16.840.1.101.3.4.1.46"
+      },
+      "properties": [
+        { "name": "purpose", "value": "data-at-rest" }
+      ]
+    },
+    {
+      "type": "cryptographic-asset",
+      "name": "SHA3-256",
+      "bom-ref": "cloud-pqc#sha3-256",
+      "description": "Secure payload integrity hashing",
+      "cryptoProperties": {
+        "assetType": "algorithm",
+        "algorithmProperties": {
+          "primitive": "digest",
+          "parameterSetIdentifier": 256,
+          "classicalSecurityLevel": 256
+        },
+        "oid": "2.16.840.1.101.3.4.2.8"
+      },
+      "properties": [
+        { "name": "purpose", "value": "payload-hash" }
+      ]
+    }
+  ]
+}
+

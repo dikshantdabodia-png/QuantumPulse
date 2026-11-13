@@ -1,0 +1,327 @@
+# QuantumPulse Cryptographic Policy & Baseline Rules
+# Standard: NIST SP 800-131A Rev. 2, CNSA 2.0, OWASP Top 10:2021 A02
+
+version: "1.0.0"
+governance_profile: "NIST_CNSA_2024"
+
+# Scoring Weight Constants
+scoring:
+  baseline_weights:
+    asymmetric_vulnerable: 5.0
+    symmetric_grover: 1.5
+    symmetric_safe: 0.2
+    broken_insecure: 8.0
+    quantum_safe: 0.0
+  criticality_multipliers:
+    internal_dev: 1.0
+    staging: 1.2
+    external_client: 2.0
+    mission_critical_pii_financial: 3.0
+  data_shelf_life_horizons:
+    short_term_under_1yr: 1.0
+    medium_term_1_to_5yrs: 1.5
+    long_term_5_to_10yrs: 2.0
+    permanent_hndl_over_10yrs: 2.5
+
+# Algorithm Classification Baselines
+algorithms:
+  # --- BROKEN / CLASSICALLY INSECURE ALGORITHMS ---
+  - id: "ALG-BROKEN-MD5"
+    name: "MD5"
+    family: "hash"
+    classification: "BROKEN_INSECURE"
+    quantum_vulnerability: 0.0
+    classical_vulnerability: 1.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Weak Hash)"
+    reason: "Collision attacks practical since 2004; broken for cryptographic purposes."
+    deprecation_deadline: "Immediate"
+
+  - id: "ALG-BROKEN-SHA1"
+    name: "SHA-1"
+    family: "hash"
+    classification: "BROKEN_INSECURE"
+    quantum_vulnerability: 0.0
+    classical_vulnerability: 0.9
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Deprecated Hash)"
+    reason: "Shattered attack proved chosen-prefix collisions; NIST deprecated in SP 800-131A."
+    deprecation_deadline: "Immediate"
+
+  - id: "ALG-BROKEN-DES"
+    name: "DES"
+    family: "symmetric"
+    classification: "BROKEN_INSECURE"
+    quantum_vulnerability: 0.0
+    classical_vulnerability: 1.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (56-bit Key Exhaustion)"
+    reason: "56-bit key space trivial to brute-force in minutes."
+    deprecation_deadline: "Immediate"
+
+  - id: "ALG-BROKEN-3DES"
+    name: "3DES"
+    family: "symmetric"
+    classification: "BROKEN_INSECURE"
+    quantum_vulnerability: 0.3
+    classical_vulnerability: 0.8
+    shor_susceptible: false
+    grover_susceptible: true
+    owasp_tag: "A02:2021-Cryptographic Failures (Sweet32 64-bit Block)"
+    reason: "Sweet32 collision attack against 64-bit block size. Disallowed by NIST after 2023."
+    deprecation_deadline: "Immediate"
+
+  - id: "ALG-BROKEN-RC4"
+    name: "RC4"
+    family: "symmetric"
+    classification: "BROKEN_INSECURE"
+    quantum_vulnerability: 0.0
+    classical_vulnerability: 1.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Biased Keystream)"
+    reason: "Severely biased keystream bytes, vulnerable to plaintext recovery attacks."
+    deprecation_deadline: "Immediate"
+
+  # --- ASYMMETRIC PRIMITIVES (SHOR'S ALGORITHM TARGETS) ---
+  - id: "ALG-SHOR-RSA"
+    name: "RSA"
+    family: "asymmetric"
+    shor_susceptible: true
+    grover_susceptible: false
+    rules:
+      - condition: "key_size < 2048"
+        classification: "BROKEN_INSECURE"
+        classical_vulnerability: 1.0
+        quantum_vulnerability: 1.0
+        owasp_tag: "A02:2021-Cryptographic Failures (Sub-2048 Bit RSA)"
+        reason: "Sub-2048 bit keys vulnerable to classical factorizing advances and immediate Shor decryption."
+        deprecation_deadline: "Immediate"
+      - condition: "key_size >= 2048 and key_size < 3072"
+        classification: "LEGACY_CLASSICAL_VULNERABLE"
+        classical_vulnerability: 0.3
+        quantum_vulnerability: 1.0
+        owasp_tag: "A02:2021-Cryptographic Failures (Quantum Insecure RSA-2048)"
+        reason: "Vulnerable to Shor's algorithm on CRQC. Disallowed by NIST/CNSA by 2030."
+        deprecation_deadline: "2030"
+      - condition: "key_size >= 3072"
+        classification: "LEGACY_CLASSICAL_VULNERABLE"
+        classical_vulnerability: 0.1
+        quantum_vulnerability: 1.0
+        owasp_tag: "A02:2021-Cryptographic Failures (Quantum Insecure RSA-3072+)"
+        reason: "Sufficient classical strength (128-bit) but completely vulnerable to Shor's algorithm on CRQC."
+        deprecation_deadline: "2033"
+
+  - id: "ALG-SHOR-ECDSA"
+    name: "ECDSA"
+    family: "signature"
+    classification: "LEGACY_CLASSICAL_VULNERABLE"
+    classical_vulnerability: 0.1
+    quantum_vulnerability: 1.0
+    shor_susceptible: true
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Shor ECDLP Vulnerable)"
+    reason: "Elliptic curve discrete log problem completely solvable by Shor's algorithm on CRQC."
+    deprecation_deadline: "2030"
+
+  - id: "ALG-SHOR-ECDH"
+    name: "ECDH"
+    family: "key-exchange"
+    classification: "LEGACY_CLASSICAL_VULNERABLE"
+    classical_vulnerability: 0.1
+    quantum_vulnerability: 1.0
+    shor_susceptible: true
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (HNDL Key Exchange Target)"
+    reason: "High priority Harvest-Now-Decrypt-Later target. Solvable by Shor's algorithm."
+    deprecation_deadline: "2030"
+
+  - id: "ALG-SHOR-DH"
+    name: "DH"
+    family: "key-exchange"
+    classification: "LEGACY_CLASSICAL_VULNERABLE"
+    classical_vulnerability: 0.4
+    quantum_vulnerability: 1.0
+    shor_susceptible: true
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Classical Diffie-Hellman)"
+    reason: "Discrete logarithm problem broken by Shor's algorithm."
+    deprecation_deadline: "2030"
+
+  - id: "ALG-SHOR-ED25519"
+    name: "Ed25519"
+    family: "signature"
+    classification: "LEGACY_CLASSICAL_VULNERABLE"
+    classical_vulnerability: 0.05
+    quantum_vulnerability: 1.0
+    shor_susceptible: true
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Edwards Curve Shor Exposure)"
+    reason: "Modern classical signature, but broken by Shor's algorithm on CRQC."
+    deprecation_deadline: "2030"
+
+  - id: "ALG-SHOR-X25519"
+    name: "X25519"
+    family: "key-exchange"
+    classification: "LEGACY_CLASSICAL_VULNERABLE"
+    classical_vulnerability: 0.05
+    quantum_vulnerability: 1.0
+    shor_susceptible: true
+    grover_susceptible: false
+    owasp_tag: "A02:2021-Cryptographic Failures (Montgomery Curve Shor Exposure)"
+    reason: "Modern classical key agreement, highly vulnerable to HNDL quantum recording."
+    deprecation_deadline: "2030"
+
+  # --- SYMMETRIC CIPHERS (GROVER'S ALGORITHM EVALUATION) ---
+  - id: "ALG-SYM-AES"
+    name: "AES"
+    family: "symmetric"
+    rules:
+      - condition: "key_size == 128"
+        classification: "COMPLIANT_QUANTUM_SAFE"
+        classical_vulnerability: 0.0
+        quantum_vulnerability: 0.3
+        shor_susceptible: false
+        grover_susceptible: true
+        owasp_tag: "Compliant (Grover Halving Advisory)"
+        reason: "Grover's algorithm halves effective strength to 64-bit; recommend upgrading to AES-256 for long-term data."
+        deprecation_deadline: "2035"
+      - condition: "key_size >= 192"
+        classification: "COMPLIANT_QUANTUM_SAFE"
+        classical_vulnerability: 0.0
+        quantum_vulnerability: 0.0
+        shor_susceptible: false
+        grover_susceptible: false
+        owasp_tag: "Compliant (Quantum-Resistant Symmetric)"
+        reason: "Effective quantum security >= 96-128 bits under Grover search. Fully quantum safe."
+        deprecation_deadline: "None"
+
+  - id: "ALG-SYM-CHACHA20"
+    name: "CHACHA20"
+    family: "symmetric"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (Quantum-Resistant Stream Cipher)"
+    reason: "256-bit key provides 128-bit quantum security against Grover search."
+    deprecation_deadline: "None"
+
+  # --- HASH FUNCTIONS ---
+  - id: "ALG-HASH-SHA2"
+    name: "SHA-256"
+    family: "hash"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (Secure SHA-2 Hash)"
+    reason: "Collision resistant; 128-bit quantum collision resistance under Brassard-Høyer-Tapp algorithm."
+    deprecation_deadline: "None"
+
+  - id: "ALG-HASH-SHA384"
+    name: "SHA-384"
+    family: "hash"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (Secure SHA-2 Hash)"
+    reason: "Collision resistant SHA-384."
+    deprecation_deadline: "None"
+
+  - id: "ALG-HASH-SHA512"
+    name: "SHA-512"
+    family: "hash"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (Secure SHA-2 Hash)"
+    reason: "Collision resistant SHA-512."
+    deprecation_deadline: "None"
+
+  - id: "ALG-HASH-SHA3-256"
+    name: "SHA3-256"
+    family: "hash"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (NIST FIPS 202 SHA-3 Keccak)"
+    reason: "Sponge construction hash; robust against quantum preimage and collision attacks."
+    deprecation_deadline: "None"
+
+  # --- POST-QUANTUM ALGORITHMS (NIST FIPS 203/204/205) ---
+  - id: "ALG-PQC-MLKEM"
+    name: "ML-KEM"
+    family: "kem"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (NIST FIPS 203 Quantum-Safe KEM)"
+    reason: "Standardized lattice-based key encapsulation mechanism (MLWE)."
+    deprecation_deadline: "None"
+
+  - id: "ALG-PQC-MLDSA"
+    name: "ML-DSA"
+    family: "signature"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (NIST FIPS 204 Quantum-Safe Signature)"
+    reason: "Standardized lattice-based digital signature standard (MSIS)."
+    deprecation_deadline: "None"
+
+  - id: "ALG-PQC-SLHDSA"
+    name: "SLH-DSA"
+    family: "signature"
+    classification: "COMPLIANT_QUANTUM_SAFE"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (NIST FIPS 205 Stateless Hash Signature)"
+    reason: "Standardized stateless hash-based signature scheme."
+    deprecation_deadline: "None"
+
+  # --- HYBRID SCHEMES ---
+  - id: "ALG-HYBRID-KEM"
+    name: "X25519+ML-KEM-768"
+    family: "hybrid-kem"
+    classification: "HYBRID_TRANSITION"
+    classical_vulnerability: 0.0
+    quantum_vulnerability: 0.0
+    shor_susceptible: false
+    grover_susceptible: false
+    owasp_tag: "Compliant (NIST/IETF Hybrid Post-Quantum Transition)"
+    reason: "Combines classical X25519 with post-quantum ML-KEM-768. Guarantees safety if either assumption holds."
+    deprecation_deadline: "None"
+
+# Context Intent Heuristics
+contextual_heuristics:
+  - id: "HEURISTIC-NON-SECURITY-HASH"
+    match_algorithms: ["MD5", "SHA-1"]
+    match_contexts: ["checksum", "file-integrity", "cache-key", "git-commit", "etag", "deduplication"]
+    action: "DOWNGRADE_SEVERITY"
+    new_severity: "LOW"
+    rationale: "Primitive is utilized for data integrity indexing or caching, not security boundary authentication."
+
+  - id: "HEURISTIC-CRITICAL-AUTH-HASH"
+    match_algorithms: ["MD5", "SHA-1"]
+    match_contexts: ["password", "credential", "auth-token", "jwt", "digital-signature", "tls-handshake"]
+    action: "ESCALATE_SEVERITY"
+    new_severity: "CRITICAL"
+    rationale: "Broken hash primitive utilized in security-critical authentication or signature pathway."
