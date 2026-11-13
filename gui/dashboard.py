@@ -23,6 +23,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from core.analyzer import QuantumPulseAnalyzer
 from core.cbom_comparer import CBOMComparer
 from core.reporter import Reporter
+from core.generator import CodebaseCBOMGenerator
 from core.models import ComplianceStatus, AlgorithmFamily
 
 
@@ -122,7 +123,7 @@ def main():
 
     mode = st.sidebar.radio(
         "Application Mode:",
-        ["CBOM Manifest Audit", "Migration Progress Delta", "Policy & NIST Catalog Reference"],
+        ["CBOM Manifest Audit", "Direct Codebase Scanner", "Migration Progress Delta", "Policy & NIST Catalog Reference"],
     )
 
     st.sidebar.markdown("---")
@@ -391,6 +392,63 @@ def main():
                     file_name=f"{Path(manifest_display_name).stem}_summary.md",
                     mime="text/markdown",
                 )
+
+    elif mode == "Direct Codebase Scanner":
+        st.markdown("### 🔍 Direct Codebase-to-CBOM Scanner")
+        st.caption("Scan application source code directories (Python, Java, JS/TS, Go, X.509 certs) to automatically extract cryptographic primitives and synthesize a CycloneDX 1.6 CBOM.")
+
+        col_dir, col_name = st.columns([3, 1])
+        with col_dir:
+            target_directory = st.text_input("Enter Project or Source Directory Path:", value="core")
+        with col_name:
+            app_label = st.text_input("Application Name:", value="QuantumPulse-System")
+
+        if st.button("🚀 Scan Codebase & Synthesize CBOM", type="primary"):
+            scan_path = Path(target_directory)
+            if not scan_path.exists():
+                st.error(f"Directory '{target_directory}' does not exist.")
+            else:
+                with st.spinner(f"Scanning '{target_directory}' for cryptographic implementations..."):
+                    gen = CodebaseCBOMGenerator()
+                    scanned_cbom = gen.scan_directory(scan_path, app_name=app_label)
+                    st.success(f"Discovered {len(scanned_cbom.get('components', []))} components! CycloneDX 1.6 CBOM generated successfully.")
+
+                    # Run instant audit on the generated CBOM
+                    compliance_rep, raw_assets = analyzer.parser.parse_data(scanned_cbom, manifest_name=f"{app_label}.json")
+                    eval_assets = analyzer.policy_engine.evaluate_assets(raw_assets)
+                    qri_res, scored_assets = analyzer.risk_calculator.calculate_qri(eval_assets)
+                    pqc_dirs = analyzer.nist_advisor.generate_advisories(scored_assets)
+
+                    c1, c2, c3, c4 = st.columns(4)
+                    with c1:
+                        st.metric("Quantum Risk Index", f"{qri_res.overall_score} / 100", delta=qri_res.risk_level, delta_color="inverse")
+                    with c2:
+                        st.metric("Total Cryptographic Assets", qri_res.total_crypto_assets)
+                    with c3:
+                        st.metric("Shor-Vulnerable Assets", qri_res.classical_vulnerable_count, delta="CRQC Exposure", delta_color="inverse")
+                    with c4:
+                        st.metric("Broken Primitives", qri_res.broken_count, delta="Immediate Fix", delta_color="inverse")
+
+                    st.markdown("---")
+                    st.markdown("#### Discovered Assets Inventory:")
+                    df_scanned = pd.DataFrame([{
+                        "ID": a.id,
+                        "Algorithm": a.name,
+                        "Family": a.family.value,
+                        "Key Size": a.key_size or "-",
+                        "Purpose": a.context_purpose or "-",
+                        "Status": a.compliance_status.value.replace("_", " "),
+                        "Asset QRI": a.individual_qri,
+                    } for a in scored_assets])
+                    st.dataframe(df_scanned, use_container_width=True, hide_index=True)
+
+                    # Download Generated CBOM JSON
+                    st.download_button(
+                        label="📦 Download Synthesized CycloneDX 1.6 CBOM JSON",
+                        data=json.dumps(scanned_cbom, indent=2),
+                        file_name=f"{app_label}_cbom.json",
+                        mime="application/json",
+                    )
 
     elif mode == "Migration Progress Delta":
         st.markdown("### Post-Quantum Migration Delta & Progress Tracking")
