@@ -29,3 +29,4 @@ def test_code_patcher_openssl():
     patch = CodePatcher.get_patch_snippet("ECDH", "ML-KEM-768", language="openssl")
     assert patch["language"] == "NGINX / OpenSSL"
     assert "X25519MLKEM768" in patch["code"]
+
