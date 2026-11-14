@@ -105,7 +105,7 @@ On Kali Linux or modern Debian/Ubuntu, Python environments are managed via virtu
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/<your-username>/QuantumPulse.git
+git clone https://github.com/dikshantdabodia-png/QuantumPulse.git
 cd QuantumPulse
 
 # 2. Create and activate a virtual environment
@@ -126,7 +126,7 @@ python3 -m pytest tests/
 
 ```powershell
 # 1. Clone the repository
-git clone https://github.com/<your-username>/QuantumPulse.git
+git clone https://github.com/dikshantdabodia-png/QuantumPulse.git
 cd QuantumPulse
 
 # 2. Create and activate virtual environment
