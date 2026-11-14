@@ -8,7 +8,7 @@
 [![OS: Linux | Windows | macOS](https://img.shields.io/badge/OS-Kali%20Linux%20%7C%20Ubuntu%20%7C%20macOS%20%7C%20Windows-blue.svg)]()
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](Dockerfile)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-21%20passed-brightgreen.svg)]()
+[![Tests](https://img.shields.io/badge/tests-22%20passed-brightgreen.svg)]()
 
 ---
 
