@@ -222,19 +222,22 @@ def _handle_exit_gates(qri, fail_on_broken: bool, fail_on_shor: bool, max_qri: O
 
 @app.command(name="generate")
 def generate_cbom(
-    source_dir: Path = typer.Argument(..., help="Path to project directory / source code."),
+    source_target: str = typer.Argument(..., help="Path to local project directory OR public GitHub repository URL."),
     output_cbom: Path = typer.Option(Path("generated_cbom.json"), "--output", "-o", help="Target CBOM JSON manifest file."),
     auto_scan: bool = typer.Option(True, "--scan/--no-scan", help="Automatically run PQC security scan after generating manifest."),
 ):
-    """Scan source code directory (Python, Java, JS/TS, Go, Certs) to generate a CycloneDX 1.6 CBOM."""
-    if not source_dir.exists():
-        console.print(f"[bold red]Error: Source directory '{source_dir}' does not exist.[/bold red]")
+    """Scan local source code or a public GitHub repository to generate a CycloneDX 1.6 CBOM."""
+    generator = CodebaseCBOMGenerator()
+    is_github = generator.is_github_url(source_target)
+
+    if not is_github and not Path(source_target).exists():
+        console.print(f"[bold red]Error: Local source directory '{source_target}' does not exist.[/bold red]")
         raise typer.Exit(code=1)
 
-    with console.status(f"[bold cyan]Scanning {source_dir} for cryptographic implementations...", spinner="dots"):
-        generator = CodebaseCBOMGenerator()
-        cbom_data = generator.scan_directory(source_dir)
+    spin_msg = f"Cloning & scanning GitHub repository '{source_target}'..." if is_github else f"Scanning '{source_target}' for cryptographic implementations..."
+    with console.status(f"[bold cyan]{spin_msg}[/bold cyan]", spinner="dots"):
         import json
+        cbom_data = generator.scan_target(source_target)
         output_cbom.write_text(json.dumps(cbom_data, indent=2), encoding="utf-8")
 
     console.print(f"[bold green]Successfully generated CycloneDX 1.6 CBOM with {len(cbom_data.get('components', []))} components at: {output_cbom}[/bold green]")

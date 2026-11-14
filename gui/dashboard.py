@@ -403,23 +403,32 @@ def main():
                 )
 
     elif mode == "Direct Codebase Scanner":
-        st.markdown("### 🔍 Direct Codebase-to-CBOM Scanner")
-        st.caption("Scan application source code directories (Python, Java, JS/TS, Go, X.509 certs) to automatically extract cryptographic primitives and synthesize a CycloneDX 1.6 CBOM.")
+        st.markdown("### 🔍 Direct Codebase & GitHub Repository Scanner")
+        st.caption("Scan local source code directories OR paste a remote GitHub repository URL (Python, Java, JS/TS, Go, X.509 certs) to automatically extract cryptographic primitives and synthesize a CycloneDX 1.6 CBOM.")
 
         col_dir, col_name = st.columns([3, 1])
         with col_dir:
-            target_directory = st.text_input("Enter Project or Source Directory Path:", value="core")
+            target_input = st.text_input(
+                "Enter Local Directory Path OR GitHub Repository URL:",
+                value="core",
+                help="Enter a local folder (e.g. 'core' or 'C:/path/to/project') or a public GitHub URL (e.g. 'https://github.com/owner/repo')",
+            )
         with col_name:
-            app_label = st.text_input("Application Name:", value="QuantumPulse-System")
+            app_label = st.text_input("Application Name:", value="Discovered-App")
 
         if st.button("🚀 Scan Codebase & Synthesize CBOM", type="primary"):
-            scan_path = Path(target_directory)
-            if not scan_path.exists():
-                st.error(f"Directory '{target_directory}' does not exist.")
+            target_str = target_input.strip()
+            gen = CodebaseCBOMGenerator()
+            is_github = gen.is_github_url(target_str)
+
+            if not is_github and not Path(target_str).exists():
+                st.error(f"Error: Local directory '{target_str}' does not exist. If this is a GitHub repository, please include 'https://github.com/...'")
             else:
-                with st.spinner(f"Scanning '{target_directory}' for cryptographic implementations..."):
-                    gen = CodebaseCBOMGenerator()
-                    scanned_cbom = gen.scan_directory(scan_path, app_name=app_label)
+                spin_msg = f"Cloning & scanning remote repository '{target_str}'..." if is_github else f"Scanning local directory '{target_str}' for cryptographic implementations..."
+                try:
+                    with st.spinner(spin_msg):
+                        scanned_cbom = gen.scan_target(target_str, app_name=app_label)
+
                     st.success(f"Discovered {len(scanned_cbom.get('components', []))} components! CycloneDX 1.6 CBOM generated successfully.")
 
                     # Run instant audit on the generated CBOM
@@ -451,8 +460,51 @@ def main():
                     } for a in scored_assets])
                     st.dataframe(df_scanned, use_container_width=True, hide_index=True)
 
-                    # Download Generated CBOM JSON
-                    st.download_button(
+                    if pqc_dirs:
+                        st.markdown("#### 🛡️ NIST Post-Quantum Migration Directives:")
+                        df_pqc = pd.DataFrame([{
+                            "Asset": d.asset_id,
+                            "Current Algorithm": d.current_algorithm,
+                            "NIST Replacement": d.recommended_replacement,
+                            "Standard": d.nist_standard,
+                            "Priority Tier": d.priority_tier,
+                            "Overhead": d.public_key_overhead or d.ciphertext_overhead or "-",
+                        } for d in pqc_dirs])
+                        st.dataframe(df_pqc, use_container_width=True, hide_index=True)
+
+                    # Download Generated CBOM JSON & PDF Report
+                    d_col1, d_col2 = st.columns(2)
+                    with d_col1:
+                        st.download_button(
+                            label="📦 Download Synthesized CycloneDX 1.6 CBOM JSON",
+                            data=json.dumps(scanned_cbom, indent=2),
+                            file_name=f"{app_label}_cbom.json",
+                            mime="application/json",
+                        )
+                    with d_col2:
+                        # Generate dynamic PDF report for scanned repo
+                        report_scanned = AnalysisReport(
+                            timestamp=datetime.now(timezone.utc).isoformat(),
+                            manifest_name=f"{app_label}.json",
+                            standard_compliance=compliance_rep,
+                            qri_summary=qri_res,
+                            assets=scored_assets,
+                            directives=pqc_dirs,
+                        )
+                        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_scanned_pdf:
+                            tmp_p = Path(tmp_scanned_pdf.name)
+                        Reporter.to_pdf(report_scanned, tmp_p)
+                        with open(tmp_p, "rb") as pf:
+                            scanned_pdf_bytes = pf.read()
+                        st.download_button(
+                            label="📄 Download Executive Audit PDF",
+                            data=scanned_pdf_bytes,
+                            file_name=f"{app_label}_audit.pdf",
+                            mime="application/pdf",
+                        )
+
+                except Exception as err:
+                    st.error(f"Scan failed: {err}")
                         label="📦 Download Synthesized CycloneDX 1.6 CBOM JSON",
                         data=json.dumps(scanned_cbom, indent=2),
                         file_name=f"{app_label}_cbom.json",

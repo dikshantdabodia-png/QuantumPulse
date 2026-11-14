@@ -171,10 +171,14 @@ Generate a complete executive PDF document with tables, badges, and remediation 
 python cli/main.py scan samples/enterprise_banking_cbom.json --format pdf --output banking_audit.pdf
 ```
 
-### 3. Generate CBOM Directly from Source Code
-Scan a directory without needing any pre-existing CBOM:
+### 3. Generate CBOM Directly from Source Code or GitHub
+Scan a local directory OR a public GitHub repository URL without needing any pre-existing CBOM:
 ```bash
+# Scan local folder:
 python cli/main.py generate ./my_code_folder -o generated_cbom.json --scan
+
+# Scan remote GitHub repository directly:
+python cli/main.py generate https://github.com/owner/repo -o repo_cbom.json --scan
 ```
 
 ### 4. Automated Code Migration Patching
@@ -227,7 +231,7 @@ streamlit run gui/dashboard.py --server.headless true --server.port 8501 --serve
 Then open `http://localhost:8501` (or `http://<server-ip>:8501`) in your browser.
 
 ### 🌟 GUI Dashboard Features:
-1. **Direct Codebase Scanner Mode:** Enter any project directory path and click **"🚀 Scan Codebase & Synthesize CBOM"** to generate and audit a CBOM in seconds.
+1. **Direct Codebase & GitHub Scanner Mode:** Enter any local project directory path OR paste a public GitHub repository URL (e.g., `https://github.com/owner/repo`), then click **"🚀 Scan Codebase & Synthesize CBOM"** to clone, generate, and audit a CBOM in seconds.
 2. **Sample Loader & File Uploader:** 
    - 1-click loading of any of the **5 included enterprise sample CBOMs** from the sidebar dropdown.
    - Or drag-and-drop your own custom `.json` CBOM file.

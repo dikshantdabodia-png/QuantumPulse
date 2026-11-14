@@ -33,3 +33,14 @@ def test_synthetic_cbom_generation():
     assert compliance.is_valid is True
     assert len(assets) == 50
 
+
+def test_is_github_url_detection():
+    gen = CodebaseCBOMGenerator()
+    assert gen.is_github_url("https://github.com/owner/repo") is True
+    assert gen.is_github_url("https://github.com/owner/repo.git") is True
+    assert gen.is_github_url("http://github.com/test/app") is True
+    assert gen.is_github_url("git@github.com:owner/repo.git") is True
+    assert gen.is_github_url("core") is False
+    assert gen.is_github_url("C:/path/to/folder") is False
+    assert gen.is_github_url("/usr/local/src") is False
+

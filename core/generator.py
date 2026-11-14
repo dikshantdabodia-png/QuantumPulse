@@ -7,6 +7,11 @@ CycloneDX 1.6 (ECMA-424) Cryptographic Bill of Materials (CBOM).
 
 import re
 import uuid
+import subprocess
+import tempfile
+import urllib.request
+import zipfile
+import io
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
@@ -49,6 +54,71 @@ class CodebaseCBOMGenerator:
             (r"SLH-DSA|slhdsa", "SLH-DSA", "signature", 128, None, "pqc-signature"),
             (r"X25519\s*\+\s*ML-KEM|X25519MLKEM", "X25519+ML-KEM-768", "kem", 768, "curve25519", "hybrid-handshake"),
         ]
+
+    @staticmethod
+    def is_github_url(target: str) -> bool:
+        """Determines if the given input string represents a remote GitHub repository URL."""
+        t = str(target).strip().lower()
+        return "github.com/" in t or t.startswith("git@github.com:")
+
+    def scan_target(self, target: str | Path, app_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Unified scanning interface: accepts either a local directory path or a remote GitHub URL.
+        """
+        target_str = str(target).strip()
+        if self.is_github_url(target_str):
+            return self.scan_github_repository(target_str, app_name=app_name)
+        else:
+            return self.scan_directory(target_str, app_name=app_name)
+
+    def scan_github_repository(self, repo_url: str, app_name: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Clones or downloads a remote GitHub repository into a temporary directory,
+        scans it for cryptographic implementations, and generates a CycloneDX 1.6 CBOM.
+        """
+        clean_url = repo_url.strip().rstrip("/")
+        repo_name = clean_url.split("/")[-1].replace(".git", "")
+        app_name = app_name or repo_name or "GitHub-Repository"
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_target = Path(tmp_dir) / "cloned_repo"
+
+            # Strategy 1: Fast shallow Git clone (depth 1)
+            try:
+                res = subprocess.run(
+                    ["git", "clone", "--depth", "1", clean_url, str(tmp_target)],
+                    capture_output=True,
+                    text=True,
+                    timeout=90,
+                )
+                if res.returncode == 0 and tmp_target.exists():
+                    return self.scan_directory(tmp_target, app_name=app_name)
+            except Exception:
+                pass
+
+            # Strategy 2: Fallback to downloading GitHub ZIP archive (works without local git binary)
+            parts = [p for p in clean_url.replace(".git", "").split("/") if p]
+            if len(parts) >= 2:
+                owner, repo = parts[-2], parts[-1]
+                for branch in ["main", "master"]:
+                    zip_url = f"https://codeload.github.com/{owner}/{repo}/zip/refs/heads/{branch}"
+                    try:
+                        req = urllib.request.Request(zip_url, headers={"User-Agent": "QuantumPulse-Scanner/1.0"})
+                        with urllib.request.urlopen(req, timeout=45) as resp:
+                            zip_bytes = resp.read()
+                            with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+                                z.extractall(tmp_target)
+                                # Extract might create a root folder like repo-main/
+                                subdirs = [d for d in tmp_target.iterdir() if d.is_dir()]
+                                scan_dir = subdirs[0] if subdirs else tmp_target
+                                return self.scan_directory(scan_dir, app_name=app_name)
+                    except Exception:
+                        continue
+
+            raise RuntimeError(
+                f"Unable to clone or download repository from '{repo_url}'. "
+                "Please verify that the repository URL is public, accessible, and correctly typed."
+            )
 
     def scan_directory(self, target_dir: str | Path, app_name: Optional[str] = None) -> Dict[str, Any]:
         """Scans a directory tree and generates a CycloneDX 1.6 CBOM document."""
