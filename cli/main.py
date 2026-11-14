@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-QuantumPulse Terminal Command Line Interface
+QuantumPulse Terminal Command Line Interface (v1.0.0)
 Powered by Typer and Rich. Supports interactive terminal scanning,
 CI/CD governance gate thresholds, multi-format exports (PDF, SARIF, JSON, Markdown),
 and CBOM delta comparisons.

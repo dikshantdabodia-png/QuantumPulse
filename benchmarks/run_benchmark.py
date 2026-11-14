@@ -1,5 +1,5 @@
 """
-QuantumPulse Empirical Performance Benchmark Suite
+QuantumPulse Empirical Performance Benchmark Suite (v1.0.0)
 Measures ingestion, schema validation, policy evaluation, and QRI calculation throughput
 across small, medium, and massive enterprise datasets (10 to 5,000+ cryptographic assets).
 """

@@ -1,5 +1,5 @@
 """
-QuantumPulse Interactive Web GUI Dashboard
+QuantumPulse Interactive Web GUI Dashboard (v1.0.0)
 Built with Streamlit, Plotly, and ReportLab.
 Provides an executive dashboard for CBOM analysis, NIST PQC migration tracking,
 performance trade-off visualizers, and 1-click audit-ready PDF export.
