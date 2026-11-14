@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   pqc-governance-audit:
     name: Post-Quantum Cryptographic Audit
@@ -29,15 +33,19 @@ jobs:
         run: |
           python -m pytest tests/ -v
 
-      - name: Run Cryptographic Audit & SARIF Generation
+      - name: Verify Post-Quantum Compliance Security Gate
+        run: |
+          python cli/main.py scan samples/cloud_microservice_pqc_cbom.json \
+            --fail-on-broken --max-qri 50.0
+
+      - name: Run Cryptographic Audit & SARIF Report Generation
         run: |
           python cli/main.py scan samples/enterprise_banking_cbom.json \
-            --format sarif --output results.sarif \
-            --fail-on-broken --max-qri 80.0
+            --format sarif --output results.sarif
 
       - name: Upload SARIF to GitHub Code Scanning
         if: always()
+        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
-
