@@ -505,11 +505,6 @@ def main():
 
                 except Exception as err:
                     st.error(f"Scan failed: {err}")
-                        label="📦 Download Synthesized CycloneDX 1.6 CBOM JSON",
-                        data=json.dumps(scanned_cbom, indent=2),
-                        file_name=f"{app_label}_cbom.json",
-                        mime="application/json",
-                    )
 
     elif mode == "Migration Progress Delta":
         st.markdown("### Post-Quantum Migration Delta & Progress Tracking")
