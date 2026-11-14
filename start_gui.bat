@@ -6,3 +6,4 @@ echo ========================================================
 echo.
 python -m streamlit run gui/dashboard.py
 pause
+
