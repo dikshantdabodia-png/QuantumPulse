@@ -25,7 +25,7 @@ from core.cbom_comparer import CBOMComparer
 from core.reporter import Reporter
 from core.generator import CodebaseCBOMGenerator
 from core.patcher import CodePatcher
-from core.models import ComplianceStatus, AlgorithmFamily
+from core.models import ComplianceStatus, AlgorithmFamily, AnalysisReport
 
 
 st.set_page_config(
@@ -153,7 +153,7 @@ def main():
             except Exception as e:
                 st.sidebar.error(f"Malformed JSON: {e}")
     else:
-        sample_path = Path(sample_options[selected_sample])
+        sample_path = PROJECT_ROOT / sample_options[selected_sample]
         if sample_path.exists():
             with open(sample_path, "r", encoding="utf-8") as f:
                 target_json_data = json.load(f)
@@ -185,13 +185,14 @@ def main():
             qri_summary, scored_assets = analyzer.risk_calculator.calculate_qri(evaluated_assets)
             directives = analyzer.nist_advisor.generate_advisories(scored_assets)
 
-            report = analyzer.analyze_file(PROJECT_ROOT / "samples" / manifest_display_name if (PROJECT_ROOT / "samples" / manifest_display_name).exists() else PROJECT_ROOT / "samples" / "enterprise_banking_cbom.json")
-            # Overwrite with current in-memory parsed payload
-            report.manifest_name = manifest_display_name
-            report.standard_compliance = compliance_report
-            report.qri_summary = qri_summary
-            report.assets = scored_assets
-            report.directives = directives
+            report = AnalysisReport(
+                timestamp=datetime.now(timezone.utc).isoformat(),
+                manifest_name=manifest_display_name,
+                standard_compliance=compliance_report,
+                qri_summary=qri_summary,
+                assets=scored_assets,
+                directives=directives,
+            )
 
         # Executive Metrics Row
         col1, col2, col3, col4, col5 = st.columns(5)
